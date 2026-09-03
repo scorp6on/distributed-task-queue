@@ -16,6 +16,11 @@ class Operation(str, enum.Enum):
     thumbnail = "thumbnail"
     convert = "convert"
 
+class ImageFormat(str, enum.Enum):
+    png = "png"
+    jpeg = "jpeg"
+    webp = "webp"
+
 class Job(Base):
     __tablename__ = "jobs"
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
@@ -24,7 +29,7 @@ class Job(Base):
     source_path: Mapped[str]
     target_width: Mapped[int | None]
     target_height: Mapped[int | None]
-    target_format: Mapped[str | None]
+    target_format: Mapped[ImageFormat | None] = mapped_column(SqlEnum(ImageFormat))
     output_path: Mapped[str | None]
     error: Mapped[str | None]
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
