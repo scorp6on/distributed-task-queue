@@ -1,4 +1,5 @@
 from pydantic import BaseModel, model_validator, ConfigDict, Field
+from fastapi import UploadFile
 from app.models import Operation, JobStatus, ImageFormat
 from datetime import datetime
 import uuid
@@ -35,3 +36,7 @@ class JobRead(BaseModel):
     error: str | None
     created_at: datetime
     updated_at: datetime
+
+class JobCreate(JobParams):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    file: UploadFile

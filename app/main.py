@@ -5,7 +5,7 @@ from fastapi import FastAPI, UploadFile, File, Form, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.db import get_db
 from app.models import Job
-from app.schemas import JobParams, JobRead
+from app.schemas import JobCreate, JobRead
 
 MEDIA_DIR = Path("media/uploads")
 MEDIA_DIR.mkdir(parents=True, exist_ok=True)
@@ -14,24 +14,23 @@ app = FastAPI()
 
 @app.post("/jobs", response_model=JobRead, status_code=201)
 async def create_job(
-    params: Annotated[JobParams, Form()],
-    file: Annotated[UploadFile, File()],
+    data: Annotated[JobCreate, Form()],
     db: Annotated[Session, Depends(get_db)],
 ):
     job_id = uuid.uuid4()
-    suffix = Path(file.filename).suffix
+    suffix = Path(data.file.filename).suffix
     dest = MEDIA_DIR / f"{job_id}{suffix}"
 
-    content = await file.read()
+    content = await data.file.read()
     dest.write_bytes(content)
 
     job = Job(
         id=job_id,
-        operation=params.operation,
+        operation=data.operation,
         source_path=str(dest),
-        target_width=params.target_width,
-        target_height=params.target_height,
-        target_format=params.target_format,
+        target_width=data.target_width,
+        target_height=data.target_height,
+        target_format=data.target_format,
     )
     db.add(job)
     db.commit()
