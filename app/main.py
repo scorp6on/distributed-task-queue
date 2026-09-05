@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.db import get_db
 from app.models import Job
 from app.schemas import JobCreate, JobRead
+from app.tasks import process_job
 
 MEDIA_DIR = Path("media/uploads")
 MEDIA_DIR.mkdir(parents=True, exist_ok=True)
@@ -35,6 +36,7 @@ async def create_job(
     db.add(job)
     db.commit()
     db.refresh(job)
+    process_job.delay(str(job.id))
     return job
 
 @app.get("/jobs/{job_id}", response_model=JobRead)
