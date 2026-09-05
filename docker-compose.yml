@@ -23,6 +23,34 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+  api:
+    build: .
+    image: distributed-task-queue-app
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg2://taskq:taskq@db:5432/taskq
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./media:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+  worker:
+    image: distributed-task-queue-app
+    command: celery -A app.celery_app worker --loglevel=info
+    environment:
+      DATABASE_URL: postgresql+psycopg2://taskq:taskq@db:5432/taskq
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./media:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
 volumes:
   pgdata:
