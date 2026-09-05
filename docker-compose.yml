@@ -40,7 +40,7 @@ services:
         condition: service_healthy
   worker:
     image: distributed-task-queue-app
-    command: celery -A app.celery_app worker --loglevel=info
+    command: celery -A app.celery_app worker --loglevel=info -E
     environment:
       DATABASE_URL: postgresql+psycopg2://taskq:taskq@db:5432/taskq
       REDIS_URL: redis://redis:6379/0
@@ -49,6 +49,18 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+  flower:
+    image: distributed-task-queue-app
+    command: celery -A app.celery_app flower --port=5555
+    ports:
+      - "5555:5555"
+    environment:
+      DATABASE_URL: postgresql+psycopg2://taskq:taskq@db:5432/taskq
+      REDIS_URL: redis://redis:6379/0
+      FLOWER_UNAUTHENTICATED_API: 1
+    depends_on:
       redis:
         condition: service_healthy
 
